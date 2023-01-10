@@ -7,22 +7,7 @@
 ## Install
 
 ```bash
-npm install --save raven-web-react-sdk
-```
-
-## Usage
-
-```jsx
-import React, { Component } from 'react'
-
-import MyComponent from 'raven-web-react-sdk'
-import 'raven-web-react-sdk/dist/index.css'
-
-class Example extends Component {
-  render() {
-    return <MyComponent />
-  }
-}
+npm install --save @ravenapp/raven-web-react-sdk
 ```
 
 ## License
