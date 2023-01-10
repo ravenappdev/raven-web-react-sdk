@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import './index.css'
 import App from './App'
-import { initFirebase, initRaven } from 'raven-web-react-sdk'
+import { initFirebase, initRaven } from '@ravenapp/raven-web-react-sdk'
 
 const FIREBASE_VAPID_KEY =
   'BFCiRVNjsqqXlwqBwv-NMrPWCoI50cvFTfzh8dMp1Q6YLwesjLKwSnQJEL1O2l3VjXoY17FmA-50nj3izde5lp4'

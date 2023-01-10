@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { setupPushNotification, setUser } from 'raven-web-react-sdk'
+import { setupPushNotification, setUser } from '@ravenapp/raven-web-react-sdk'
 
 function App() {
   useEffect(() => {
