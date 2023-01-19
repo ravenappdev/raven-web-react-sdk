@@ -30,4 +30,4 @@ ReactDOM.render(
 )
 
 initFirebase(FIREBASE_CONFIG, FIREBASE_VAPID_KEY)
-initRaven(RAVEN_APP_ID, RAVEN_SECRET_KEY)
+initRaven(RAVEN_APP_ID, RAVEN_SECRET_KEY, 'web1')

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { setupPushNotification, setUser } from '@ravenapp/raven-web-react-sdk'
+import { setupPushNotification } from '@ravenapp/raven-web-react-sdk'
 
 function App() {
   useEffect(() => {
@@ -23,10 +23,10 @@ function App() {
       <header className='App-header'>
         <button
           onClick={() => {
-            setUser('web1')
             setupPushNotification(
               () => console.log('Error setting up push'),
-              (token) => console.log('Got the token from raven: ' + token)
+              (token) => console.log('Got the token from raven: ' + token),
+              process.env.PUBLIC_URL + 'firebase'
             )
           }}
         >
