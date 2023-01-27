@@ -105,35 +105,39 @@ function sendTokenToRaven(token) {
   }
 }
 
-const broadcast = new BroadcastChannel('display-notification')
-broadcast.onmessage = (event) => {
-  try {
-    let payload = event.data
-    if (payload && payload['type'] === 'DELIVERED') {
-      navigator.serviceWorker.getRegistration().then(function (reg) {
-        renderNotification(reg, payload)
-        setTimeout(() => {
-          api.updateStatus(
-            payload['data']['raven_notification_id'],
-            'DELIVERED'
-          )
-        }, 2000)
-      })
-    }
-
-    if (payload && payload['type'] === 'CLICKED') {
-      api.updateStatus(payload['data']['raven_notification_id'], 'CLICKED')
-      const clickBroadcast = new BroadcastChannel('click-notification')
-      var action = payload['action']
-      if (!action) {
-        action = payload['data']['click_action']
+if (typeof window !== 'undefined' && window.document) {
+  const broadcast = new BroadcastChannel('display-notification')
+  broadcast.onmessage = (event) => {
+    try {
+      let payload = event.data
+      if (payload && payload['type'] === 'DELIVERED') {
+        navigator.serviceWorker.getRegistration().then(function (reg) {
+          renderNotification(reg, payload)
+          setTimeout(() => {
+            api.updateStatus(
+              payload['data']['raven_notification_id'],
+              'DELIVERED'
+            )
+          }, 2000)
+        })
       }
-      clickBroadcast.postMessage({
-        click_action: action
-      })
+
+      if (payload && payload['type'] === 'CLICKED') {
+        api.updateStatus(payload['data']['raven_notification_id'], 'CLICKED')
+        if (typeof window !== 'undefined' && window.document) {
+          const clickBroadcast = new BroadcastChannel('click-notification')
+          var action = payload['action']
+          if (!action) {
+            action = payload['data']['click_action']
+          }
+          clickBroadcast.postMessage({
+            click_action: action
+          })
+        }
+      }
+    } catch (err) {
+      console.log('Broadcast display-notification error: ' + err)
     }
-  } catch (err) {
-    console.log('Broadcast display-notification error: ' + err)
   }
 }
 

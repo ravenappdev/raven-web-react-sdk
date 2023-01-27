@@ -7,17 +7,19 @@ export const initializeFirebase = (config) => {
 
 export function setup(onError, onTokenReceived, serviceworkerPath) {
   try {
-    Notification.requestPermission().then((permission) => {
-      if (permission === 'granted') {
-        console.log('Notification permission granted.')
-        getToken(onTokenReceived, serviceworkerPath)
-      } else {
-        console.log('Unable to get permission to notify.')
-        if (onError) {
-          onError()
+    if (typeof window !== 'undefined' && window.document) {
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          console.log('Notification permission granted.')
+          getToken(onTokenReceived, serviceworkerPath)
+        } else {
+          console.log('Unable to get permission to notify.')
+          if (onError) {
+            onError()
+          }
         }
-      }
-    })
+      })
+    }
   } catch (error) {
     console.error(error)
   }
@@ -26,7 +28,10 @@ export function setup(onError, onTokenReceived, serviceworkerPath) {
 function getToken(onTokenReceived, serviceworkerPath) {
   const messaging = firebase.messaging()
 
-  var path = process.env.PUBLIC_URL + '/messaging-sw.js'
+  var path = ''
+  if (typeof window !== 'undefined' && window.document) {
+    path = process.env.PUBLIC_URL + '/messaging-sw.js'
+  }
   if (serviceworkerPath) {
     path = serviceworkerPath + '/messaging-sw.js'
   }
@@ -72,12 +77,15 @@ function setupCallbacks() {
 
   messaging.onMessage((payload) => {
     console.log('Foreground Message received. ', payload)
-    const broadcast = new BroadcastChannel('display-notification')
 
-    broadcast.postMessage({
-      type: 'DELIVERED',
-      data: payload['data']
-    })
+    if (typeof window !== 'undefined' && window.document) {
+      const broadcast = new BroadcastChannel('display-notification')
+
+      broadcast.postMessage({
+        type: 'DELIVERED',
+        data: payload['data']
+      })
+    }
 
     //Click not handled here
   })
