@@ -23,7 +23,7 @@ export const RAVEN_SECRET_KEY =
   '59d0c0f5ccdd287dc9b46d8e18bbd3a269b5b6c91607693be0478d4c94f18f2c'
 export const RAVEN_API_KEY = 'YXNkaGl3YW1zY2lhdXNuamxxamR3b3ducWlsamRrd3FlcWU='
 export const RAVEN_TOKEN_SECRET =
-  'e40ba90f660d71a2e47033d156df9a5cc1906aded97cb378928d9c7ef4d2883e'
+  '0ce447ee0b47770fb6ae1b89cf0a0d48a3bc34b377b126fce261bd03347ee87b'
 
 ReactDOM.render(
   <React.StrictMode>

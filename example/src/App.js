@@ -14,24 +14,6 @@ import {
   RAVEN_TOKEN_SECRET
 } from '.'
 
-async function HMAC(key, message) {
-  const g = (str) =>
-      new Uint8Array(
-        [...unescape(encodeURIComponent(str))].map((c) => c.charCodeAt(0))
-      ),
-    k = g(key),
-    m = g(message),
-    c = await crypto.subtle.importKey(
-      'raw',
-      k,
-      { name: 'HMAC', hash: 'SHA-256' },
-      true,
-      ['sign']
-    ),
-    s = await crypto.subtle.sign('HMAC', c, m)
-  return btoa(String.fromCharCode(...new Uint8Array(s)))
-}
-
 function App() {
   const [loggedIn, setLoggedIn] = useState(
     localStorage.getItem('MY_USER', false)
