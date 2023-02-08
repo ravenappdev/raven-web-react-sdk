@@ -28,18 +28,10 @@ export function setup(onError, onTokenReceived, serviceworkerPath) {
 function getToken(onTokenReceived, serviceworkerPath) {
   const messaging = firebase.messaging()
 
-  var path = ''
-  if (typeof window !== 'undefined' && window.document) {
-    path = process.env.PUBLIC_URL + '/messaging-sw.js'
-  }
-  if (serviceworkerPath) {
-    path = serviceworkerPath + '/messaging-sw.js'
-  }
-
   var vapidKey = localStorage.getItem(FIREBASE_VAPID_KEY)
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker
-      .register(path)
+      .register(serviceworkerPath)
       .then((reg) => {
         // Get registration token. Initially this makes a network call, once retrieved
         // subsequent calls to getToken will return from cache.
@@ -62,7 +54,7 @@ function getToken(onTokenReceived, serviceworkerPath) {
             // ...
           })
 
-        setupCallbacks()
+        setupForegroundCallback()
       })
       .catch((regErr) => {
         console.log('An error occurred while registering sw. ', regErr)
@@ -72,9 +64,10 @@ function getToken(onTokenReceived, serviceworkerPath) {
   }
 }
 
-function setupCallbacks() {
+export function setupForegroundCallback() {
   const messaging = firebase.messaging()
 
+  console.log('Foreground notification receiver registered')
   messaging.onMessage((payload) => {
     console.log('Foreground Message received. ', payload)
 
