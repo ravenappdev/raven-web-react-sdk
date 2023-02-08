@@ -2,25 +2,28 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import './index.css'
 import App from './App'
-import { initFirebase, initRaven } from '@ravenapp/raven-web-react-sdk'
+import { initFirebase } from '@ravenapp/raven-web-react-sdk'
 
-const FIREBASE_VAPID_KEY =
-  'BFCiRVNjsqqXlwqBwv-NMrPWCoI50cvFTfzh8dMp1Q6YLwesjLKwSnQJEL1O2l3VjXoY17FmA-50nj3izde5lp4'
+export const FIREBASE_VAPID_KEY =
+  'BNB_rwyFYc7VOb77u4cu6zHvv-NHXm6Z9YqTtcwytYeYNsA5BqNRACElB84B1mR9H2Q_4armx4ksNy4wjrnHZ38'
 
-const FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyBfhzlaOuvzV04oHNOGN2afunCOpJJGaNs',
-  authDomain: 'raven-test-app.firebaseapp.com',
-  databaseURL: 'https://raven-test-app.firebaseio.com',
-  projectId: 'raven-test-app',
-  storageBucket: 'raven-test-app.appspot.com',
-  messagingSenderId: '720703019142',
-  appId: '1:720703019142:web:92852a2073af849b391907',
-  measurementId: 'G-9T19QD6LCS'
+export const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyAeqNPMyDw_1bBsu4IXy-xBfx4t56Zk6KM',
+  authDomain: 'raven-bd761.firebaseapp.com',
+  databaseURL: 'https://raven-bd761.firebaseio.com',
+  projectId: 'raven-bd761',
+  storageBucket: 'raven-bd761.appspot.com',
+  messagingSenderId: '130665094064',
+  appId: '1:130665094064:web:59751de7dc8006369b1475',
+  measurementId: 'G-B4NFTLMKZH'
 }
 
-const RAVEN_APP_ID = 'ead40fc4-34a2-4e7c-abaf-337c00eef79a'
-const RAVEN_SECRET_KEY =
+export const RAVEN_APP_ID = 'ead40fc4-34a2-4e7c-abaf-337c00eef79a'
+export const RAVEN_SECRET_KEY =
   '59d0c0f5ccdd287dc9b46d8e18bbd3a269b5b6c91607693be0478d4c94f18f2c'
+export const RAVEN_API_KEY = 'YXNkaGl3YW1zY2lhdXNuamxxamR3b3ducWlsamRrd3FlcWU='
+export const RAVEN_TOKEN_SECRET =
+  '0ce447ee0b47770fb6ae1b89cf0a0d48a3bc34b377b126fce261bd03347ee87b'
 
 ReactDOM.render(
   <React.StrictMode>
@@ -30,4 +33,3 @@ ReactDOM.render(
 )
 
 initFirebase(FIREBASE_CONFIG, FIREBASE_VAPID_KEY)
-initRaven(RAVEN_APP_ID, RAVEN_SECRET_KEY, 'web1')

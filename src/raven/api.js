@@ -14,12 +14,14 @@ var SET_USER
 var SET_USER_DEVICE
 var REMOVE_USER_DEVICE
 var SET_DELIVERY_STATUS
+var SUBSCRIBE_TOPIC
+var UNSUBSCRIBE_TOPIC
 
 String.prototype.format = function () {
   return [...arguments].reduce((p, c) => p.replace(/%s/, c), this)
 }
 
-function setupApi() {
+export function setupApi() {
   var secret = localStorage.getItem(RAVEN_SECRET_KEY)
   AUTHORIZATION = secret
 
@@ -31,6 +33,8 @@ function setupApi() {
   SET_USER_DEVICE = `${BASE_URL}/users/%s/devices/sdk`
   REMOVE_USER_DEVICE = `${BASE_URL}/users/%s/devices/%s/sdk`
   SET_DELIVERY_STATUS = `${BASE_URL}/push/status`
+  SUBSCRIBE_TOPIC = `${BASE_URL}/push/fcm/subscribe-topic`
+  UNSUBSCRIBE_TOPIC = `${BASE_URL}/push/fcm/unsubscribe-topic`
 }
 
 export function getUser() {
@@ -49,7 +53,12 @@ export function getUser() {
       'X-Raven-User-Signature': AUTHORIZATION
     }
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('HTTP status ' + response.status)
+      }
+      return response.json()
+    })
     .then((data) => {
       localStorage.setItem(RAVEN_USER, JSON.stringify(data))
     })
@@ -78,10 +87,14 @@ export function setUser(userId, onSuccess) {
       user_id: userId
     })
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('HTTP status ' + response.status)
+      }
+      return response.json()
+    })
     .then((data) => {
       console.log('Success setting user:', data)
-
       var user = localStorage.getItem(RAVEN_USER)
       if (user) {
         user = JSON.parse(user)
@@ -121,9 +134,14 @@ export function setUserDevice(userId, token) {
       fcm_token: token
     })
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('HTTP status ' + response.status)
+      }
+      return response.json()
+    })
     .then((data) => {
-      // console.log("Success setting user device:", data);
+      console.log('Success: Setting token on Raven')
 
       localStorage.setItem(DEVICE_TOKEN, token)
       localStorage.setItem(DEVICE_ID, data['device_sid'])
@@ -162,23 +180,27 @@ export function removeDevice(userId, deviceId) {
       'Content-Type': 'application/json'
     }
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('HTTP status ' + response.status)
+      }
+      // return response.json()
+    })
     .then((data) => {
-      // console.log("Success deleting user device:", deviceId);
-
-      localStorage.setItem(DEVICE_TOKEN, null)
-      localStorage.setItem(DEVICE_ID, null)
-      localStorage.setItem(RAVEN_USER, null)
-      localStorage.setItem(USER_ID, null)
-      localStorage.setItem(RAVEN_SECRET_KEY, null)
+      console.log('Success: User device removed')
+      AUTHORIZATION = null
+      localStorage.removeItem(DEVICE_ID)
+      localStorage.removeItem(RAVEN_USER)
+      localStorage.removeItem(USER_ID)
+      localStorage.removeItem(RAVEN_SECRET_KEY)
     })
     .catch((error) => {
       console.error('Error:', error)
     })
 }
 
-export function updateStatus(notificationId, type) {
-  if (!notificationId || !type) {
+export function subscribeTopic(topics, userId, token) {
+  if (!topics) {
     return
   }
 
@@ -186,22 +208,83 @@ export function updateStatus(notificationId, type) {
     setupApi()
   }
 
+  var body = {}
+  if (userId) {
+    body = {
+      user_id: userId,
+      topics: topics
+    }
+  } else if (token) {
+    body = {
+      device_id: token,
+      fcm_token: token,
+      topics: topics
+    }
+  }
+
   //get user api
-  fetch(SET_DELIVERY_STATUS, {
+  fetch(SUBSCRIBE_TOPIC, {
     method: 'POST',
     headers: {
       'X-Raven-User-Signature': AUTHORIZATION,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      notification_id: notificationId,
-      type: type,
-      timestamp: Date.now(),
-      current_timestamp: Date.now()
-    })
+    body: JSON.stringify(body)
   })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('HTTP status ' + response.status)
+      }
+      // return response.json()
+    })
     .then((data) => {
-      // console.log(data);
+      console.log('Success: Topic subscription')
+    })
+    .catch((error) => {
+      console.error('Error:', error)
+    })
+}
+
+export function unsubscribeTopic(topics, userId, token) {
+  if (!topics) {
+    return
+  }
+
+  if (!AUTHORIZATION) {
+    setupApi()
+  }
+
+  var body = {}
+  if (userId) {
+    body = {
+      user_id: userId,
+      topics: topics
+    }
+  } else if (token) {
+    body = {
+      device_id: token,
+      fcm_token: token,
+      topics: topics
+    }
+  }
+
+  //get user api
+  fetch(UNSUBSCRIBE_TOPIC, {
+    method: 'POST',
+    headers: {
+      'X-Raven-User-Signature': AUTHORIZATION,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('HTTP status ' + response.status)
+      }
+      // return response.json()
+    })
+    .then((data) => {
+      console.log('Success: Topic unsubscription')
     })
     .catch((error) => {
       console.error('Error:', error)

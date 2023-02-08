@@ -1,4 +1,7 @@
 export { setupPushNotification } from './raven'
 export { initFirebase } from './raven'
-export { initRaven } from './raven'
+export { initRavenBeforeLogin } from './raven'
+export { initRavenAfterLogin } from './raven'
 export { logout } from './raven'
+export { subscribeFirebaseTopic } from './raven'
+export { unsubscribeFirebaseTopic } from './raven'

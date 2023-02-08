@@ -1,4 +1,4 @@
-import { deleteToken, initializeFirebase, setup } from '../firebase'
+import { initializeFirebase, setup, setupForegroundCallback } from '../firebase'
 import * as api from './api'
 import {
   DEVICE_TOKEN,
@@ -16,6 +16,7 @@ export function initFirebase(firebaseConfig, firebaseVapidKey) {
   localStorage.setItem(FIREBASE_CONFIG, JSON.stringify(firebaseConfig))
   localStorage.setItem(FIREBASE_VAPID_KEY, firebaseVapidKey)
   initializeFirebase(firebaseConfig)
+  setupForegroundCallback()
   api.getUser()
 }
 
@@ -25,6 +26,14 @@ export function setupPushNotification(
   onTokenReceived,
   customServiceWorkerPath
 ) {
+  var path = ''
+  if (typeof window !== 'undefined' && window.document) {
+    path = process.env.PUBLIC_URL + '/messaging-sw.js'
+  }
+  if (customServiceWorkerPath) {
+    path = customServiceWorkerPath + '/messaging-sw.js'
+  }
+
   setup(
     onError,
     (token) => {
@@ -34,14 +43,22 @@ export function setupPushNotification(
         onTokenReceived(token)
       }
     },
-    customServiceWorkerPath
+    path
   )
 }
 
-//after login and getting the signature using userId
-export function initRaven(ravenAppId, ravenSecretKey, userId) {
+//OPTIONAL: before login, init raven to reach out to unidentified user using topics. use the firebase token as the userId and pass the signature as the secret
+export function initRavenBeforeLogin(ravenAppId, ravenSecretKey) {
   localStorage.setItem(RAVEN_APP_ID, ravenAppId)
   localStorage.setItem(RAVEN_SECRET_KEY, ravenSecretKey)
+  api.setupApi()
+}
+
+//after login, init raven and identify the user on raven. use the userId to get the signature and pass it as secret
+export function initRavenAfterLogin(ravenAppId, ravenSecretKey, userId) {
+  localStorage.setItem(RAVEN_APP_ID, ravenAppId)
+  localStorage.setItem(RAVEN_SECRET_KEY, ravenSecretKey)
+  api.setupApi()
   setUser(userId)
 }
 
@@ -72,7 +89,7 @@ export function logout() {
     return
   }
 
-  deleteToken()
+  // deleteToken()
 
   let userId = localStorage.getItem(USER_ID)
   api.removeDevice(userId, deviceId)
@@ -105,63 +122,27 @@ function sendTokenToRaven(token) {
   }
 }
 
-if (typeof window !== 'undefined' && window.document) {
-  const broadcast = new BroadcastChannel('display-notification')
-  broadcast.onmessage = (event) => {
-    try {
-      let payload = event.data
-      if (payload && payload['type'] === 'DELIVERED') {
-        navigator.serviceWorker.getRegistration().then(function (reg) {
-          renderNotification(reg, payload)
-          setTimeout(() => {
-            api.updateStatus(
-              payload['data']['raven_notification_id'],
-              'DELIVERED'
-            )
-          }, 2000)
-        })
-      }
-
-      if (payload && payload['type'] === 'CLICKED') {
-        api.updateStatus(payload['data']['raven_notification_id'], 'CLICKED')
-        if (typeof window !== 'undefined' && window.document) {
-          const clickBroadcast = new BroadcastChannel('click-notification')
-          var action = payload['action']
-          if (!action) {
-            action = payload['data']['click_action']
-          }
-          clickBroadcast.postMessage({
-            click_action: action
-          })
-        }
-      }
-    } catch (err) {
-      console.log('Broadcast display-notification error: ' + err)
+//topic
+export function subscribeFirebaseTopic(topics) {
+  let userId = localStorage.getItem(USER_ID)
+  if (userId) {
+    api.subscribeTopic(topics, userId, null)
+  } else {
+    const token = localStorage.getItem(DEVICE_TOKEN)
+    if (token) {
+      api.subscribeTopic(topics, null, token)
     }
   }
 }
 
-function renderNotification(reg, payload) {
-  if (payload && payload['data']) {
-    //form action array
-    var actions = []
-    for (var i = 1; i <= 4; i++) {
-      if (payload['data']['action' + i]) {
-        var action = payload['data']['action' + i]
-        var title = payload['data']['title' + i]
-        var icon = payload['data']['icon' + i]
-        actions.push({ action: action, title: title, icon: icon })
-      }
+export function unsubscribeFirebaseTopic(topics) {
+  let userId = localStorage.getItem(USER_ID)
+  if (userId) {
+    api.unsubscribeTopic(topics, userId, null)
+  } else {
+    const token = localStorage.getItem(DEVICE_TOKEN)
+    if (token) {
+      api.unsubscribeTopic(topics, null, token)
     }
-
-    const notificationTitle = payload['data']['title']
-    const notificationOptions = {
-      body: payload['data']['body'],
-      icon: payload['data']['icon'],
-      data: payload['data'],
-      image: payload['data']['image'],
-      actions: actions
-    }
-    reg.showNotification(notificationTitle, notificationOptions)
   }
 }
