@@ -23,19 +23,14 @@ firebase.initializeApp(FIREBASE_CONFIG)
 const messaging = firebase.messaging()
 
 messaging.onBackgroundMessage((payload) => {
-  console.log('[messaging-sw.js] Received background message ', payload)
+  console.log('[messaging-sw.js] Received background message ')
   onMessageReceived(payload)
 })
 
 function handleClick(event) {
   event.notification.close()
-  updateStatus(event.notification['data']['raven_notification_id'], 'CLICKED')
-  // broadcast.postMessage({
-  //   type: 'CLICKED',
-  //   data: event.notification.data,
-  //   actions: event.notification.actions,
-  //   action: event.action
-  // })
+  console.log('[messaging-sw.js] Clicked message')
+  onMessageClicked(event.notification)
 }
 
 self.addEventListener('notificationclick', handleClick)
@@ -49,17 +44,7 @@ broadcast.onmessage = (event) => {
     }
 
     if (payload && payload['type'] === 'CLICKED') {
-      // api.updateStatus(payload['data']['raven_notification_id'], 'CLICKED')
-      // if (typeof window !== 'undefined' && window.document) {
-      //   const clickBroadcast = new BroadcastChannel('click-notification')
-      //   var action = payload['action']
-      //   if (!action) {
-      //     action = payload['data']['click_action']
-      //   }
-      //   clickBroadcast.postMessage({
-      //     click_action: action
-      //   })
-      // }
+      onMessageClicked(payload)
     }
   } catch (err) {
     console.log('Broadcast display-notification error: ' + err)
@@ -91,7 +76,6 @@ function updateStatus(notificationId, type) {
       if (!response.ok) {
         throw new Error('HTTP status ' + response.status)
       }
-      // return response.json()
     })
     .then((data) => {
       // console.log(data);
@@ -130,5 +114,19 @@ function onMessageReceived(payload) {
   renderNotification(self.registration, payload)
   setTimeout(() => {
     updateStatus(payload['data']['raven_notification_id'], 'DELIVERED')
+  }, 2000)
+}
+
+function onMessageClicked(payload) {
+  const clickBroadcast = new BroadcastChannel('click-notification')
+  var action = payload['action']
+  if (!action) {
+    action = payload['data']['click_action']
+  }
+  clickBroadcast.postMessage({
+    click_action: action
+  })
+  setTimeout(() => {
+    updateStatus(payload['data']['raven_notification_id'], 'CLICKED')
   }, 2000)
 }

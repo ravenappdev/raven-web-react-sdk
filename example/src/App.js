@@ -7,7 +7,12 @@ import {
   unsubscribeFirebaseTopic,
   initRavenBeforeLogin
 } from '@ravenapp/raven-web-react-sdk'
-import { RAVEN_API_KEY, RAVEN_APP_ID, RAVEN_SECRET_KEY } from '.'
+import {
+  RAVEN_API_KEY,
+  RAVEN_APP_ID,
+  RAVEN_SECRET_KEY,
+  RAVEN_TOKEN_SECRET
+} from '.'
 
 async function HMAC(key, message) {
   const g = (str) =>
@@ -56,10 +61,7 @@ function App() {
 
   useEffect(() => {
     if (!loggedIn && token) {
-      initRavenBeforeLogin(
-        RAVEN_APP_ID,
-        '7e1a3765ae43d0cf2c3628f9d98636d4f4245761e5023fd72a8bc56ff9c3d83d'
-      )
+      initRavenBeforeLogin(RAVEN_APP_ID, RAVEN_TOKEN_SECRET)
     }
   }, [loggedIn, token])
 

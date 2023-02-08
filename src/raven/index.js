@@ -1,11 +1,4 @@
-import {
-  deleteToken,
-  initializeFirebase,
-  setup,
-  setupForegroundCallback,
-  subscribeTopic,
-  unsubscribeTopic
-} from '../firebase'
+import { initializeFirebase, setup, setupForegroundCallback } from '../firebase'
 import * as api from './api'
 import {
   DEVICE_TOKEN,
@@ -15,8 +8,7 @@ import {
   USER_ID,
   DEVICE_ID,
   RAVEN_APP_ID,
-  RAVEN_SECRET_KEY,
-  SERVICE_WORKER_PATH
+  RAVEN_SECRET_KEY
 } from './constants'
 
 //on app start
@@ -25,7 +17,6 @@ export function initFirebase(firebaseConfig, firebaseVapidKey) {
   localStorage.setItem(FIREBASE_VAPID_KEY, firebaseVapidKey)
   initializeFirebase(firebaseConfig)
   setupForegroundCallback()
-  setupBackgroundListener(localStorage.getItem(SERVICE_WORKER_PATH, null))
   api.getUser()
 }
 
@@ -51,7 +42,6 @@ export function setupPushNotification(
       if (onTokenReceived) {
         onTokenReceived(token)
       }
-      setupBackgroundListener(path)
     },
     path
   )
@@ -129,78 +119,6 @@ function sendTokenToRaven(token) {
   let userId = localStorage.getItem(USER_ID)
   if (userId) {
     api.setUserDevice(userId, token)
-  }
-}
-
-function setupBackgroundListener(path) {
-  if (path && typeof window !== 'undefined' && window.document) {
-    navigator.serviceWorker.getRegistration(path).then(function (reg) {
-      if (reg) {
-        console.log('Background notification receiver registered')
-        localStorage.setItem(SERVICE_WORKER_PATH, path)
-        const broadcast = new BroadcastChannel('display-notification')
-        broadcast.onmessage = (event) => {
-          try {
-            let payload = event.data
-            if (payload && payload['type'] === 'DELIVERED') {
-              renderNotification(reg, payload)
-              setTimeout(() => {
-                api.updateStatus(
-                  payload['data']['raven_notification_id'],
-                  'DELIVERED'
-                )
-              }, 2000)
-            }
-
-            if (payload && payload['type'] === 'CLICKED') {
-              api.updateStatus(
-                payload['data']['raven_notification_id'],
-                'CLICKED'
-              )
-              if (typeof window !== 'undefined' && window.document) {
-                const clickBroadcast = new BroadcastChannel(
-                  'click-notification'
-                )
-                var action = payload['action']
-                if (!action) {
-                  action = payload['data']['click_action']
-                }
-                clickBroadcast.postMessage({
-                  click_action: action
-                })
-              }
-            }
-          } catch (err) {
-            console.log('Broadcast display-notification error: ' + err)
-          }
-        }
-      }
-    })
-  }
-}
-
-function renderNotification(reg, payload) {
-  if (payload && payload['data']) {
-    //form action array
-    var actions = []
-    for (var i = 1; i <= 4; i++) {
-      if (payload['data']['action' + i]) {
-        var action = payload['data']['action' + i]
-        var title = payload['data']['title' + i]
-        var icon = payload['data']['icon' + i]
-        actions.push({ action: action, title: title, icon: icon })
-      }
-    }
-
-    const notificationTitle = payload['data']['title']
-    const notificationOptions = {
-      body: payload['data']['body'],
-      icon: payload['data']['icon'],
-      data: payload['data'],
-      image: payload['data']['image'],
-      actions: actions
-    }
-    reg.showNotification(notificationTitle, notificationOptions)
   }
 }
 

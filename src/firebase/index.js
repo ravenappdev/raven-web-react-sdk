@@ -69,7 +69,7 @@ export function setupForegroundCallback() {
 
   console.log('Foreground notification receiver registered')
   messaging.onMessage((payload) => {
-    console.log('Foreground Message received. ', payload)
+    console.log('Foreground Message received. ')
 
     if (typeof window !== 'undefined' && window.document) {
       const broadcast = new BroadcastChannel('display-notification')
